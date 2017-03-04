@@ -15,16 +15,22 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+
+import me.lemire.integercompression.differential.IntegratedIntCompressor;
 
 import com.npaw.utilities.args.Args;
 import com.npaw.utilities.args.ArgsException;
 
 public class CompressorApplication {
 
+	//-c /home/roby/Scrivania/integers /home/roby/Scrivania/integersCompressed
+	//-d /home/roby/Scrivania/integersCompressed /home/roby/Scrivania/integersDecompressed
 
 	public static void main(String[] args) {
 		
@@ -46,10 +52,28 @@ public class CompressorApplication {
 	
 	private static void executeApplication(String operation, String targetFile, String resultFile){
 		
+		String folder = null;
+		String folderSeparator = null;
+		
+		if (targetFile.lastIndexOf("/") != -1){
+			folder = targetFile.substring(0, targetFile.lastIndexOf("/"));
+			folderSeparator = "/";
+			
+		}
+		else if (targetFile.lastIndexOf("\\\\") != -1){
+			
+			folder = targetFile.substring(0, targetFile.lastIndexOf("\\\\"));
+			folderSeparator = "\\\\";
+		}
+			
 			try {
-				doCompression(targetFile, resultFile);
+				if (operation.compareTo("c") == 0) 
+					
+					doCompression(targetFile, resultFile, folder + folderSeparator + "temp");
+				else if (operation.compareTo("d") == 0) 
+					doDecompression(targetFile, resultFile, folder + folderSeparator + "temp");
 			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
+
 				e.printStackTrace();
 			}
 //			List<Integer> list= buildList(targetFile);
@@ -57,29 +81,86 @@ public class CompressorApplication {
 			
 	}
 	
-	private static void doCompression(String targetFile, String resultFile) throws FileNotFoundException{
+	private static void doCompression(String targetFile, String resultFile, String tempFile) throws FileNotFoundException{
 		
 		String[] numberString;
 		List<String> lines = getLines(targetFile);
-				
+	
 		Integer number;
-		String hex;
+		
+		
 		for (String line : lines) {
+			
 			
 			numberString = line.split(",");
 			if (numberString.length > 0){
-				
+
+						
 				for (int n=0; n< numberString.length; n++){
 				
-					if (isStringInteger(numberString[n])){
-						number = Integer.valueOf(numberString[n]);
-						hex = Integer.toHexString(number);
-						appendToFile(hex+",", resultFile);
+					if (isInteger(numberString[n])){
+					
+						
+						appendToFile(n + "," + Integer.valueOf(numberString[n]) + "\n", tempFile);
+						appendToFile(n + ",", resultFile);
 					} 					
 				}
+				
+				
+				
 			}
-		}		
+		}	
+		
+		
+	}
+	
+	private static void doDecompression(String fileToDecompress, String fileDecompressed, String tempFile) throws FileNotFoundException{
+		
+		String[] numberString;
+		List<String> lines = getLines(fileToDecompress);
+		List<String> linesTemp = getLines(tempFile);
+		
+		Integer decompressedNumber;
+		
+		
+		for (String line : lines) {
 			
+			
+			numberString = line.split(",");
+			if (numberString.length > 0){
+
+						
+				for (int n=0; n< numberString.length; n++){
+				
+					if (isInteger(numberString[n])){
+						decompressedNumber = linesTemp.indexOf(n);
+						
+						
+						appendToFile(decompressedNumber + "," , fileDecompressed);
+					} 					
+				}
+				
+				
+				
+			}
+		}	
+		
+	}
+	private static List<String> getLines(String filename) {
+
+		Scanner fileScanner;
+		List<String> lines = new ArrayList<String>();
+
+		try {
+				fileScanner = new Scanner(new File(filename));
+				while (fileScanner.hasNextLine()) {
+				lines.add(fileScanner.nextLine());
+			}
+			
+			fileScanner.close();
+		} catch (FileNotFoundException e) {}
+
+		return lines;
 	}
 	
 	private static String compressAString(String data){
@@ -114,22 +195,7 @@ public class CompressorApplication {
 	}
 	
 
-	private static List<String> getLines(String filename) {
-
-		Scanner fileScanner;
-		List<String> lines = new ArrayList<String>();
-
-		try {
-				fileScanner = new Scanner(new File(filename));
-				while (fileScanner.hasNextLine()) {
-				lines.add(fileScanner.nextLine());
-			}
-			
-			fileScanner.close();
-		} catch (FileNotFoundException e) {}
-
-		return lines;
-	}
+	
 
 	private static List<String> buildListCompressedNumbers(List<String> lines){
 		
@@ -144,7 +210,7 @@ public class CompressorApplication {
 				
 				for (int n=0; n< numberString.length; n++){
 				
-					if (isStringInteger(numberString[n])){
+					if (isInteger(numberString[n])){
 						number = Integer.valueOf(numberString[n]);
 						hex = Integer.toHexString(number);
 						compressedNumbers.add(hex);
@@ -168,7 +234,7 @@ public class CompressorApplication {
 				
 				for (int n=0; n< numberString.length; n++){
 				
-					if (isStringInteger(numberString[n])){
+					if (isInteger(numberString[n])){
 						number = Integer.valueOf(numberString[n]);
 						numbers.add(number);
 					} 					
@@ -178,17 +244,10 @@ public class CompressorApplication {
 		return numbers;
 	}
 	
-	private static boolean isStringInteger(String stringToCheck){
+	private static boolean isInteger(String stringToCheck){
 		
 		try{
-			
-			Integer number = Integer.valueOf(stringToCheck);
-			//String s = Character.toString((char)c);
-			
-			System.out.print(" "+ number);
-			System.out.println();
-			String hex = Integer.toHexString(number);
-			System.out.print(" "+ hex);
+			Integer.valueOf(stringToCheck);			
 		}
 		catch(Exception ex){
 			return false;

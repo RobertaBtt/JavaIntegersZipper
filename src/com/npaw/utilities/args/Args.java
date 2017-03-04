@@ -20,7 +20,7 @@ public class Args {
 		ListIterator<String> currentArgument;
 		
 		try{
-			operation = argsList.get(0);
+			operation = argsList.get(0).substring(1);
 			targetFile = argsList.get(1);
 			resultFile = argsList.get(2);
 			
