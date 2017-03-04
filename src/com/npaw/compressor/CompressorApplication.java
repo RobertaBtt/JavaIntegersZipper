@@ -69,9 +69,9 @@ public class CompressorApplication {
 			try {
 				if (operation.compareTo("c") == 0) 
 					
-					doCompression(targetFile, resultFile, folder + folderSeparator + "temp");
+					doCompression(targetFile, resultFile, folder + folderSeparator + "tmp");
 				else if (operation.compareTo("d") == 0) 
-					doDecompression(targetFile, resultFile, folder + folderSeparator + "temp");
+					doDecompression(targetFile, resultFile, folder + folderSeparator + "tmp");
 			} catch (FileNotFoundException e) {
 
 				e.printStackTrace();
@@ -133,7 +133,7 @@ public class CompressorApplication {
 				for (int n=0; n< numberString.length; n++){
 				
 					if (isInteger(numberString[n])){
-						decompressedNumber = linesTemp.indexOf(n);
+						decompressedNumber = Integer.valueOf(linesTemp.get(n).substring(linesTemp.get(n).lastIndexOf(",")+1));
 						
 						
 						appendToFile(decompressedNumber + "," , fileDecompressed);
